@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Football Players Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: 
+            #090a09ff;
+        }
+        canvas {
+            display: block;
+            margin: auto;
+            background: #7f7c1eff;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas" width="1050" height="650"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+// Player objects
+let player1 = {
+    x: 200,
+    y: 300,
+    radius: 20,
+    color: "blue",
+    speed: 4
+};
+
+let player2 = {
+    x: 800,
+    y: 300,
+    radius: 20,
+    color: "red",
+    speed: 4
+};
+
+// Ball
+let ball = {
+    x: 500,
+    y: 300,
+    radius: 10,
+    speedX: 0,
+    speedY: 0
+};
+
+let score1 = 0;
+let score2 = 0;
+
+let keys = {};
+
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+function movePlayers() {
+    // Player 1 (WASD)
+    if (keys["w"]) player1.y -= player1.speed;
+    if (keys["s"]) player1.y += player1.speed;
+    if (keys["a"]) player1.x -= player1.speed;
+    if (keys["d"]) player1.x += player1.speed;
+
+    // Player 2 (Arrow Keys)
+    if (keys["ArrowUp"]) player2.y -= player2.speed;
+    if (keys["ArrowDown"]) player2.y += player2.speed;
+    if (keys["ArrowLeft"]) player2.x -= player2.speed;
+    if (keys["ArrowRight"]) player2.x += player2.speed;
+}
+
+function moveBall() {
+    ball.x += ball.speedX;
+    ball.y += ball.speedY;
+
+    // friction
+    ball.speedX *= 0.99;
+    ball.speedY *= 0.99;
+
+    // bounce top/bottom
+    if (ball.y < 0 || ball.y > canvas.height)
+        ball.speedY *= -1;
+
+    // goals
+    if (ball.x < 0) {
+        score2++;
+        resetBall();
+    }
+
+    if (ball.x > canvas.width) {
+        score1++;
+        resetBall();
+    }
+}
+
+function resetBall() {
+    ball.x = 500;
+    ball.y = 300;
+    ball.speedX = 0;
+    ball.speedY = 0;
+}
+
+function checkKick(player) {
+    let dx = ball.x - player.x;
+    let dy = ball.y - player.y;
+    let distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < player.radius + ball.radius) {
+        ball.speedX = dx * 0.2;
+        ball.speedY = dy * 0.2;
+    }
+}
+
+function drawPlayer(player) {
+    // Body
+    ctx.fillStyle = player.color;
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Head
+    ctx.fillStyle = "peachpuff";
+    ctx.beginPath();
+    ctx.arc(player.x, player.y - 25, 12, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawBall() {
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawField() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Middle line
+    ctx.strokeStyle = "white";
+    ctx.beginPath();
+    ctx.moveTo(500, 0);
+    ctx.lineTo(500, 600);
+    ctx.stroke();
+
+    // Center circle
+    ctx.beginPath();
+    ctx.arc(500, 300, 80, 0, Math.PI * 2);
+    ctx.stroke();
+}
+
+function drawScore() {
+    ctx.fillStyle = "white";
+    ctx.font = "30px Arial";
+    ctx.fillText(score1 + " - " + score2, 470, 40);
+}
+
+function gameLoop() {
+    movePlayers();
+    moveBall();
+
+    checkKick(player1);
+    checkKick(player2);
+
+    drawField();
+    drawPlayer(player1);
+    drawPlayer(player2);
+    drawBall();
+    drawScore();
+
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+
+</body>
+</html>
